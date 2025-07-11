@@ -1,0 +1,97 @@
+repos:
+  # Pre-commit hooks for Python code quality
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: debug-statements
+      - id: check-case-conflict
+      - id: check-docstring-first
+
+  # Python formatting with black
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+
+  # Python linting with ruff
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.2
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Type checking with mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests, types-aiofiles]
+        args: [--ignore-missing-imports, --check-untyped-defs]
+
+  # Security checks with bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: [-r, src/, -f, json]
+        exclude: tests/
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+
+  # Custom pre-commit script for project-specific checks
+  - repo: local
+    hooks:
+      - id: maxine-pre-commit
+        name: MAXINE Pre-commit Checks
+        entry: python scripts/pre_commit.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
+  # Poetry checks
+  - repo: local
+    hooks:
+      - id: poetry-check
+        name: Poetry Check
+        entry: poetry check
+        language: system
+        pass_filenames: false
+        files: pyproject.toml
+
+  # Pytest (optional - can be slow)
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: Run Tests
+        entry: poetry run pytest --maxfail=1 -x
+        language: system
+        pass_filenames: false
+        stages: [push] # Only run on push, not on every commit
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ""
+  autoupdate_commit_msg: "[pre-commit.ci] pre-commit autoupdate"
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
